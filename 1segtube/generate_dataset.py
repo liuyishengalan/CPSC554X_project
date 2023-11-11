@@ -35,6 +35,6 @@ class CustomLoss(nn.Module):
         loss_function = nn.MSELoss()  # Using Mean Squared Error loss
         loss_1 = loss_function(predicted[0], target[0])  # Loss for first output
         loss_2 = loss_function(predicted[1], target[1])  # Loss for second output
-        total_loss = loss_1 + loss_2  # Combine the losses
+        total_loss = loss_1 # + loss_2  # Combine the losses
 
         return total_loss

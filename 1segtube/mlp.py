@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from generate_dataset import CustomDataset, CustomLoss
-
+from torch.utils.data import DataLoader, random_split
 
 
 
@@ -12,11 +12,11 @@ class MLP(nn.Module):
   def __init__(self):
     super().__init__()
     self.layers = nn.Sequential(
-      nn.Linear(5, 32),
+      nn.Linear(5, 8),
       nn.ReLU(),
-      nn.Linear(32, 16),
+      nn.Linear(8, 4),
       nn.ReLU(),
-      nn.Linear(16, 2)
+      nn.Linear(4, 2)
     )
 
 
@@ -29,7 +29,13 @@ if __name__ == '__main__':
     data_file_path = 'dataset/acoustic_data.txt'
     labels_file_path = 'dataset/geometry_data.txt'
     dataset = CustomDataset(data_file_path, labels_file_path)
-    trainloader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True, num_workers=1)
+    # Define the sizes for the training and test sets
+    train_size = int(0.8 * len(dataset))  # 80% training
+    test_size = len(dataset) - train_size  # 20% test
+    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    # load training set and test set
+    train_loader = DataLoader(train_dataset, batch_size=10, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
   
     # Initialize the MLP
     mlp = MLP()
@@ -48,9 +54,8 @@ if __name__ == '__main__':
         current_loss = 0.0
         
         # Iterate over the DataLoader for training data
-        for i, data in enumerate(trainloader, 0):
+        for i, data in enumerate(train_loader, 0):
         
-            print(i)
             # Get inputs
             inputs = data["data"]
             targets = data["label"]
@@ -81,3 +86,22 @@ if __name__ == '__main__':
 
     # Process is complete.
     print('Training process has finished.')
+
+    # validation process
+    accuracy = list()
+
+    for i, data in enumerate(test_dataset, 0):
+        # Get inputs
+        inputs = data["data"]
+        targets = data["label"]
+        outputs = mlp(inputs)
+        # calculate accuracy
+        if i == 0:
+            avg_accuracy = abs(outputs - targets) / targets * 100
+        else:
+            avg_accuracy += abs(outputs - targets) / targets * 100
+
+        accuracy.append(abs(outputs - targets) / targets * 100)
+    avg_accuracy /= test_size
+    print(avg_accuracy)
+    
