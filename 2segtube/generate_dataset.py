@@ -14,7 +14,7 @@ class CustomDataset(Dataset):
             self.labels = []
             for line in file:
                 label = list(map(float, line.split()))
-                label = label[2:4]
+                label = label[2:5]
                 self.labels.append(label)
 
     def __len__(self):
@@ -35,6 +35,7 @@ class CustomLoss(nn.Module):
         loss_function = nn.L1Loss()  # Using Mean Squared Error loss
         loss_1 = loss_function(predicted[0], target[0])  # Loss for first output
         loss_2 = loss_function(predicted[1], target[1])  # Loss for second output
-        total_loss = loss_1 # + loss_2  # Combine the losses
+        loss_3 = loss_function(predicted[2], target[2])  # Loss for second output
+        total_loss = loss_1  + loss_2 + loss_3 # Combine the losses
 
         return total_loss
