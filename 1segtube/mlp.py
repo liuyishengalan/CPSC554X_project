@@ -4,7 +4,6 @@ from generate_dataset import CustomDataset, CustomLoss
 from torch.utils.data import DataLoader, random_split
 
 
-
 class MLP(nn.Module):
   '''
     Multilayer Perceptron.
@@ -12,7 +11,7 @@ class MLP(nn.Module):
   def __init__(self):
     super().__init__()
     self.layers = nn.Sequential(
-      nn.Linear(18, 64),
+      nn.Linear(5, 64),
       nn.ReLU(),
       nn.Linear(64, 16),
       nn.ReLU(),
@@ -26,6 +25,7 @@ class MLP(nn.Module):
   
   
 if __name__ == '__main__':
+
     data_file_path = 'dataset/acoustic_data.txt'
     labels_file_path = 'dataset/geometry_data.txt'
     dataset = CustomDataset(data_file_path, labels_file_path)
