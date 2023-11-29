@@ -3,20 +3,22 @@ from torch.utils.data import Dataset
 from torch import nn
 import numpy as np
 from torchvision import transforms
+from sklearn.decomposition import PCA
 
 class CustomDataset(Dataset):
     def __init__(self, data_file, labels_file, transform=None):
         
         self.mfcc = np.load('mfcc_feature.npy')
+        self.td = np.load('td_feature.npy')
         
         with open(data_file, 'r') as file:
             self.data = []
             idx = 0
             for line in file:
                 numbers = np.array(list(map(float, line.split())))  # Read and split numbers
-                # self.data.append(np.hstack((numbers, self.mfcc[idx].reshape(-1))))
-                self.data.append(numbers)
-                # idx += 1
+                self.data.append(np.hstack((numbers, self.mfcc[idx].reshape(-1), self.td[idx].reshape(-1))))
+                # self.data.append(numbers)
+                idx += 1
 
             feature_i = list()
             self.mean = list()
@@ -25,11 +27,17 @@ class CustomDataset(Dataset):
                 feature_i.append(np.array([arr[i] for arr in self.data]))
                 self.mean.append(np.mean(feature_i[i]))
                 self.std.append(np.std(feature_i[i]))
-            self.transform = transforms.Normalize(mean=self.mean, std=self.std)
-            # self.transform = None
-            print(self.std)
-            for i in range(4):
-                print(self.data[i])
+            
+            for i, features in enumerate(self.data):
+                self.data[i] = (features - self.mean) / self.std
+            self.transform = None
+            data_array = np.vstack(self.data)
+            
+            # Apply PCA here to reduce the dimension
+            num_components = 14  # Choose the number of components
+            pca = PCA(n_components=num_components)
+            self.data = pca.fit_transform(data_array)
+            print(self.data.shape)
 
         with open(labels_file, 'r') as file:
             self.labels = []
@@ -45,12 +53,12 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         sample = {
-            'data': torch.tensor(self.data[idx], dtype=torch.float),
+            'data': torch.tensor(self.data[idx,:], dtype=torch.float),
             'label': torch.tensor(self.labels[idx], dtype=torch.float) 
         }
         if self.transform:
             sample = {
-            'data': torch.tensor((self.data[idx]-self.mean)/self.std, dtype=torch.float),
+            'data': torch.tensor(self.data[idx,:], dtype=torch.float),
             'label': torch.tensor(self.labels[idx], dtype=torch.float) 
             }
         return sample

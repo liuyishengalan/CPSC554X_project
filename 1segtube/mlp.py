@@ -11,7 +11,7 @@ class MLP(nn.Module):
   def __init__(self):
     super().__init__()
     self.layers = nn.Sequential(
-      nn.Linear(5, 64),
+      nn.Linear(14, 64),
       nn.ReLU(),
       nn.Linear(64, 16),
       nn.ReLU(),
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(mlp.parameters(), lr=5e-5)
 
     # Run the training loop
-    for epoch in range(0, 15): # 5 epochs at maximum
+    for epoch in range(0, 20): # 5 epochs at maximum
     
         # Print epoch
         print(f'Starting epoch {epoch+1}')
