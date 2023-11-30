@@ -4,7 +4,6 @@ from generate_dataset import CustomDataset, CustomLoss
 from torch.utils.data import DataLoader, random_split
 
 
-
 class MLP(nn.Module):
   '''
     Multilayer Perceptron.
@@ -12,11 +11,11 @@ class MLP(nn.Module):
   def __init__(self):
     super().__init__()
     self.layers = nn.Sequential(
-      nn.Linear(5, 16),
+      nn.Linear(14, 64),
       nn.ReLU(),
-      nn.Linear(16, 10),
+      nn.Linear(64, 16),
       nn.ReLU(),
-      nn.Linear(10, 3)
+      nn.Linear(16, 3)
     )
 
 
@@ -26,6 +25,7 @@ class MLP(nn.Module):
   
   
 if __name__ == '__main__':
+
     data_file_path = 'dataset/acoustic_data.txt'
     labels_file_path = 'dataset/geometry_data.txt'
     dataset = CustomDataset(data_file_path, labels_file_path)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(mlp.parameters(), lr=5e-5)
 
     # Run the training loop
-    for epoch in range(0, 15): # 5 epochs at maximum
+    for epoch in range(0, 30): # 5 epochs at maximum
     
         # Print epoch
         print(f'Starting epoch {epoch+1}')
@@ -83,8 +83,24 @@ if __name__ == '__main__':
                         (i + 1, current_loss / 500))
                 current_loss = 0.0
 
-    # Process is complete.
-    print('Training process has finished.')
+
+        # validation process
+        accuracy = list()
+
+        for i, data in enumerate(test_dataset, 0):
+            # Get inputs
+            inputs = data["data"]
+            targets = data["label"]
+            outputs = mlp(inputs)
+            # calculate accuracy
+            if i == 0:
+                avg_accuracy = abs(outputs - targets) / targets * 100
+            else:
+                avg_accuracy += abs(outputs - targets) / targets * 100
+
+            accuracy.append(abs(outputs - targets) / targets * 100)
+        avg_accuracy /= test_size
+        print(avg_accuracy)
 
     # validation process
     accuracy = list()

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(mlp.parameters(), lr=5e-5)
 
     # Run the training loop
-    for epoch in range(0, 20): # 5 epochs at maximum
+    for epoch in range(0, 30): # 5 epochs at maximum
     
         # Print epoch
         print(f'Starting epoch {epoch+1}')
@@ -83,8 +83,24 @@ if __name__ == '__main__':
                         (i + 1, current_loss / 500))
                 current_loss = 0.0
 
-    # Process is complete.
-    print('Training process has finished.')
+
+        # validation process
+        accuracy = list()
+
+        for i, data in enumerate(test_dataset, 0):
+            # Get inputs
+            inputs = data["data"]
+            targets = data["label"]
+            outputs = mlp(inputs)
+            # calculate accuracy
+            if i == 0:
+                avg_accuracy = abs(outputs - targets) / targets * 100
+            else:
+                avg_accuracy += abs(outputs - targets) / targets * 100
+
+            accuracy.append(abs(outputs - targets) / targets * 100)
+        avg_accuracy /= test_size
+        print(avg_accuracy)
 
     # validation process
     accuracy = list()

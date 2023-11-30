@@ -1,14 +1,43 @@
 import torch
 from torch.utils.data import Dataset
 from torch import nn
+import numpy as np
+from torchvision import transforms
+from sklearn.decomposition import PCA
 
 class CustomDataset(Dataset):
-    def __init__(self, data_file, labels_file):
+    def __init__(self, data_file, labels_file, transform=None):
+        
+        self.mfcc = np.load('mfcc_feature.npy')
+        self.td = np.load('td_feature.npy')
+        
         with open(data_file, 'r') as file:
             self.data = []
+            idx = 0
             for line in file:
-                numbers = list(map(float, line.split()))  # Read and split numbers
-                self.data.append(numbers)
+                numbers = np.array(list(map(float, line.split())))  # Read and split numbers
+                self.data.append(np.hstack((numbers, self.mfcc[idx].reshape(-1), self.td[idx].reshape(-1))))
+                # self.data.append(numbers)
+                idx += 1
+
+            feature_i = list()
+            self.mean = list()
+            self.std = list()
+            for i in range(len(self.data[0])):
+                feature_i.append(np.array([arr[i] for arr in self.data]))
+                self.mean.append(np.mean(feature_i[i]))
+                self.std.append(np.std(feature_i[i]))
+            
+            for i, features in enumerate(self.data):
+                self.data[i] = (features - self.mean) / self.std
+            self.transform = None
+            data_array = np.vstack(self.data)
+            
+            # Apply PCA here to reduce the dimension
+            num_components = 14  # Choose the number of components
+            pca = PCA(n_components=num_components)
+            self.data = pca.fit_transform(data_array)
+            print(self.data.shape)
 
         with open(labels_file, 'r') as file:
             self.labels = []
@@ -16,15 +45,22 @@ class CustomDataset(Dataset):
                 label = list(map(float, line.split()))
                 label = label[2:5]
                 self.labels.append(label)
+        
+        
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         sample = {
-            'data': torch.tensor(self.data[idx], dtype=torch.float),
+            'data': torch.tensor(self.data[idx,:], dtype=torch.float),
             'label': torch.tensor(self.labels[idx], dtype=torch.float) 
         }
+        if self.transform:
+            sample = {
+            'data': torch.tensor(self.data[idx,:], dtype=torch.float),
+            'label': torch.tensor(self.labels[idx], dtype=torch.float) 
+            }
         return sample
 
 class CustomLoss(nn.Module):
@@ -36,6 +72,6 @@ class CustomLoss(nn.Module):
         loss_1 = loss_function(predicted[0], target[0])  # Loss for first output
         loss_2 = loss_function(predicted[1], target[1])  # Loss for second output
         loss_3 = loss_function(predicted[2], target[2])  # Loss for second output
-        total_loss = loss_1  + loss_2 + loss_3 # Combine the losses
+        total_loss = loss_1 + loss_2 + loss_3 # Combine the losses
 
         return total_loss
