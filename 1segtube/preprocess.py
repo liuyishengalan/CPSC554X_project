@@ -55,11 +55,11 @@ if do_bandwidth:
     s_b_feature = list()
     for i in range(20000):
         num = i+1
-        filename = 'dataset/audio_' + str(1) + '.mat'
+        filename = 'dataset/audio_' + str(num) + '.mat'
         mat_data = scipy.io.loadmat(filename)
         wave = mat_data['Pr_Audio'].reshape(-1)
         srate = mat_data['srate'] * mat_data['srate_mul']
-        s_b = librosa.feature.spectral_bandwidth(y=wave, sr=srate, n_fft=len(wave), hop_length=len(wave))
+        s_b = librosa.feature.spectral_bandwidth(y=wave, sr=srate, n_fft=2048, hop_length=512)
         s_b_feature.append(s_b)
     np.save('bandwidth_feature.npy', s_b_feature)
 
