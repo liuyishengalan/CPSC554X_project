@@ -8,7 +8,8 @@ def zero_crossing_rate(signal):
     return rate
 
 do_mfcc = False
-do_timedomain = True
+do_timedomain = False
+do_bandwidth = True
 
 do_rms  = True      # root mean square
 do_zcr = True       # zero crossing rate
@@ -33,7 +34,7 @@ if do_timedomain:
     for i in range(20000):
         feature_list = list()
         num = i+1
-        filename = 'dataset/Tube_seg_1/audio_' + str(num) + '.mat'
+        filename = 'dataset/audio_' + str(num) + '.mat'
         mat_data = scipy.io.loadmat(filename)
         wave = mat_data['Pr_Audio'].reshape(-1)
         
@@ -48,4 +49,18 @@ if do_timedomain:
         td_feature.append(feature_array)
         
     np.save('td_feature.npy', td_feature)
+
+if do_bandwidth:
+    print("Calculating bandwidth features...")
+    s_b_feature = list()
+    for i in range(20000):
+        num = i+1
+        filename = 'dataset/audio_' + str(1) + '.mat'
+        mat_data = scipy.io.loadmat(filename)
+        wave = mat_data['Pr_Audio'].reshape(-1)
+        srate = mat_data['srate'] * mat_data['srate_mul']
+        s_b = librosa.feature.spectral_bandwidth(y=wave, sr=srate, n_fft=len(wave), hop_length=len(wave))
+        s_b_feature.append(s_b)
+    np.save('bandwidth_feature.npy', s_b_feature)
+
 print("All done!")
