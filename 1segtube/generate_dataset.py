@@ -8,9 +8,14 @@ from sklearn.decomposition import PCA
 class CustomDataset(Dataset):
     def __init__(self, data_file, labels_file, transform=None):
         
+        self.data = list()
         self.mfcc = np.load('mfcc_feature.npy')
         self.td = np.load('td_feature.npy')
-        
+        self.formants = np.load('formant_feature.npy')
+
+        for i in range(len(self.mfcc)):
+            self.data.append(np.hstack((self.formants[i].reshape(-1), self.mfcc[i].reshape(-1), self.td[i].reshape(-1))))
+        '''
         with open(data_file, 'r') as file:
             self.data = []
             idx = 0
@@ -19,25 +24,26 @@ class CustomDataset(Dataset):
                 self.data.append(np.hstack((numbers, self.mfcc[idx].reshape(-1), self.td[idx].reshape(-1))))
                 # self.data.append(numbers)
                 idx += 1
+        '''
 
-            feature_i = list()
-            self.mean = list()
-            self.std = list()
-            for i in range(len(self.data[0])):
-                feature_i.append(np.array([arr[i] for arr in self.data]))
-                self.mean.append(np.mean(feature_i[i]))
-                self.std.append(np.std(feature_i[i]))
-            
-            for i, features in enumerate(self.data):
-                self.data[i] = (features - self.mean) / self.std
-            self.transform = None
-            data_array = np.vstack(self.data)
-            
-            # Apply PCA here to reduce the dimension
-            num_components = 14  # Choose the number of components
-            pca = PCA(n_components=num_components)
-            self.data = pca.fit_transform(data_array)
-            print(self.data.shape)
+        feature_i = list()
+        self.mean = list()
+        self.std = list()
+        for i in range(len(self.data[0])):
+            feature_i.append(np.array([arr[i] for arr in self.data]))
+            self.mean.append(np.mean(feature_i[i]))
+            self.std.append(np.std(feature_i[i]))
+        
+        for i, features in enumerate(self.data):
+            self.data[i] = (features - self.mean) / self.std
+        self.transform = None
+        data_array = np.vstack(self.data)
+        
+        # Apply PCA here to reduce the dimension
+        num_components = 14  # Choose the number of components
+        pca = PCA(n_components=num_components)
+        self.data = pca.fit_transform(data_array)
+        print(self.data.shape)
 
         with open(labels_file, 'r') as file:
             self.labels = []

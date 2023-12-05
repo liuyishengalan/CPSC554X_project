@@ -50,7 +50,7 @@ if __name__ == '__main__':
   
     # Initialize the CNN
     input_size = 14
-    output_size = 2
+    output_size = 3
     cnn = CNN(input_size, output_size).to(device)
   
     # Define the loss function and optimizer
