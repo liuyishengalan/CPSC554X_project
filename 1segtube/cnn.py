@@ -69,7 +69,9 @@ if __name__ == '__main__':
     width_error = []
     test_error = []
     test_error2 = []
-    for epoch in range(0, 50): # 100 epochs at maximum
+    acc1 = []
+    acc2 = []
+    for epoch in range(0, 40): # 100 epochs at maximum
     
         # Print epoch
         print(f'Starting epoch {epoch+1}')
@@ -108,8 +110,8 @@ if __name__ == '__main__':
             #    print('Loss after mini-batch %5d: %.3f' %
             #            (i + 1, current_loss / 500))
             #    current_loss = 0.0
-        print('Train Loss %5d: %.3f' % (i + 1, current_loss / train_size))
-        train_loss.append(current_loss / train_size)
+        print('Train Loss %5d: %.3f' % (i + 1, current_loss / len(train_loader)))
+        train_loss.append(current_loss / len(train_loader))
         current_loss = 0.0
 
 
@@ -132,12 +134,14 @@ if __name__ == '__main__':
             #accuracyyy.append(accuracyy)
             val_loss += criterion(outputs, targets).item()
 
-        avg_accuracy /= test_size
-        print(f'loss: {(val_loss/test_size):.4f}')
+        avg_accuracy /= len(test_loader)#test_size#len(test_loader)
+        print(f'loss: {(val_loss/len(test_loader)):.4f}')
         print(f'Error:{avg_accuracy}')
+        acc1.append(100-((avg_accuracy[4][0]).item()))
+        acc2.append(100-((avg_accuracy[4][1]).item()))
         length_error.append((avg_accuracy[4][0]).item())
         width_error.append((avg_accuracy[4][1]).item())
-        test_error.append((val_loss/test_size))
+        test_error.append((val_loss/len(test_loader)))
         val_loss = 0
 
     # validation process
@@ -157,35 +161,37 @@ if __name__ == '__main__':
         accuracy.append(abs(outputs - targets) / targets * 100)
         val_loss += criterion(outputs, targets)
         #accuracyy += (outputs == targets).sum().item() / len(targets)
-    avg_accuracy /= test_size
-    print(f'loss: {(val_loss/test_size):.4f}')
+    avg_accuracy /= len(test_loader)
+    print(f'loss: {(val_loss/len(test_loader)):.4f}')
     print(f'Error:{avg_accuracy}')
 
-x = np.arange(1,51)
+x = np.arange(1,41)
 fig, ax =  plt.subplots(2, 2,figsize=(10,10)) # Creates figure fig and add an axes, ax.
 fig.subplots_adjust(hspace=1.5)
 
-ax[0,0].plot(x,np.asarray(train_loss))
+ax[0,0].plot(x,np.asarray(train_loss),x,np.asarray(test_error))
 ax[0,0].set_title("1 segtube Train Loss")
 ax[0,0].set_ylabel('MSE Loss')
 ax[0,0].set_xlabel('# of Epoch')
+ax[0,0].set_xlabel('# of Epoch')
+ax[0,0].legend(['Train loss','Test loss'])
 
  
-ax[1,0].plot(x,np.asarray(test_error))
-ax[1,0].set_title("1 segtube Validation loss")
-ax[1,0].set_ylabel('MSE Loss')
-ax[1,0].set_xlabel('# of Epoch')
+#ax[1,0].plot(x,np.asarray(test_error))
+#ax[1,0].set_title("1 segtube Validation loss")
+#ax[1,0].set_ylabel('MSE Loss')
+#ax[1,0].set_xlabel('# of Epoch')
 
 
-ax[0,1].plot(x,np.asarray(width_error))
-ax[0,1].set_title("1 segtube Width Error")
-ax[0,1].set_ylabel('Percentage Error')
+ax[0,1].plot(x,np.asarray(acc2))
+ax[0,1].set_title("1 segtube Width Accuracy")
+ax[0,1].set_ylabel('Percentage ACC')
 ax[0,1].set_xlabel('# of Epoch')
 
 
-ax[1,1].plot(x,np.asarray(length_error))
-ax[1,1].set_title("1 segtube Length Error")
-ax[1,1].set_ylabel('Percentage Error')
+ax[1,1].plot(x,np.asarray(acc1))
+ax[1,1].set_title("1 segtube Length Accuracy")
+ax[1,1].set_ylabel('Percentage Acc')
 ax[1,1].set_xlabel('# of Epoch')
 
 plt.show()
