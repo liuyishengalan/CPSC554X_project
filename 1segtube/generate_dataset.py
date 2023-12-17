@@ -14,7 +14,7 @@ class CustomDataset(Dataset):
         self.formants = np.load('formant_feature.npy')
 
         for i in range(len(self.mfcc)):
-            self.data.append(np.hstack((self.formants[i].reshape(-1), self.mfcc[i].reshape(-1), self.td[i].reshape(-1))))
+            self.data.append(np.hstack((self.mfcc[i].reshape(-1),self.td[i].reshape(-1)))) #, self.mfcc[i].reshape(-1),self.formants[i].reshape(-1),
         '''
         with open(data_file, 'r') as file:
             self.data = []
@@ -38,12 +38,12 @@ class CustomDataset(Dataset):
             self.data[i] = (features - self.mean) / self.std
         self.transform = None
         data_array = np.vstack(self.data)
-        
+        self.data = data_array
         # Apply PCA here to reduce the dimension
-        num_components = 14  # Choose the number of components
-        pca = PCA(n_components=num_components)
-        self.data = pca.fit_transform(data_array)
-        print(self.data.shape)
+        #num_components = 14  # Choose the number of components
+        #pca = PCA(n_components=num_components)
+        #self.data = pca.fit_transform(data_array)
+        #print(self.data.shape)
 
         with open(labels_file, 'r') as file:
             self.labels = []

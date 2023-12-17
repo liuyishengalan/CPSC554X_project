@@ -2,6 +2,9 @@ import torch
 from torch import nn
 from generate_dataset import CustomDataset, CustomLoss
 from torch.utils.data import DataLoader, random_split
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
 
 # use cuda if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -57,7 +60,15 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(cnn.parameters(), lr=0.001)
     #criterion = nn.CrossEntropyLoss()
     # Run the training loop
-    for epoch in range(0, 50): # 100 epochs at maximum
+    train_loss = []
+    length_error = []
+    width_error = []
+    test_error = []
+    test_error2 = []
+    acc1 = []
+    acc2 = []
+    acc3 = []
+    for epoch in range(0, 40): # 100 epochs at maximum
     
         # Print epoch
         print(f'Starting epoch {epoch+1}')
@@ -80,7 +91,7 @@ if __name__ == '__main__':
             outputs = cnn(inputs)
             
             # Compute loss
-            criterion = CustomLoss()
+            criterion = nn.MSELoss()
             loss = criterion(outputs, targets)
             
             
@@ -92,15 +103,19 @@ if __name__ == '__main__':
             
             # Print statistics
             current_loss += loss.item()
-            if i % 500 == 499:
-                print('Loss after mini-batch %5d: %.3f' %
-                        (i + 1, current_loss / 500))
-                current_loss = 0.0
+            #if i % 500 == 499:
+             #   print('Loss after mini-batch %5d: %.3f' %
+             #           (i + 1, current_loss / 500))
+             #   current_loss = 0.0
+        
+        print('Train Loss %5d: %.3f' % (i + 1, current_loss / len(train_loader)))
+        train_loss.append(current_loss / len(train_loader))
+        current_loss = 0.0
 
 
         # validation process
         accuracy = list()
-
+        val_loss = 0
         for i, data in enumerate(test_loader, 0):
             # Get inputs
             inputs = data["data"].to(device)
@@ -113,8 +128,19 @@ if __name__ == '__main__':
                 avg_accuracy += abs(outputs - targets) / targets * 100
 
             accuracy.append(abs(outputs - targets) / targets * 100)
-        avg_accuracy /= test_size
-        print(avg_accuracy)
+            val_loss += criterion(outputs, targets).item()
+
+        avg_accuracy /= len(test_loader)#test_size#len(test_loader)
+        print(f'loss: {(val_loss/len(test_loader)):.4f}')
+        print(f'Error:{avg_accuracy}')
+        acc1.append(100-((avg_accuracy[4][0]).item()))
+        acc2.append(100-((avg_accuracy[4][1]).item()))
+        acc3.append(100-((avg_accuracy[4][2]).item()))
+        length_error.append((avg_accuracy[4][0]).item())
+        width_error.append((avg_accuracy[4][1]).item())
+        test_error.append((val_loss/len(test_loader)))
+        val_loss = 0
+       
 
     # validation process
     accuracy = list()
@@ -131,6 +157,37 @@ if __name__ == '__main__':
             avg_accuracy += abs(outputs - targets) / targets * 100
 
         accuracy.append(abs(outputs - targets) / targets * 100)
-    avg_accuracy /= test_size
+    avg_accuracy /= len(test_loader)
     print(avg_accuracy)
+
+x = np.arange(1,41)
+fig, ax =  plt.subplots(2, 2,figsize=(10,10)) # Creates figure fig and add an axes, ax.
+fig.subplots_adjust(hspace=1.5)
+
+ax[0,0].plot(x,np.asarray(train_loss),x,np.asarray(test_error))
+ax[0,0].set_title("2 segtube Train Loss")
+ax[0,0].set_ylabel('MSE Loss')
+ax[0,0].set_xlabel('# of Epoch')
+ax[0,0].set_xlabel('# of Epoch')
+ax[0,0].legend(['Train loss','Test loss'])
+
+ 
+ax[1,0].plot(x,np.asarray(acc3))
+ax[1,0].set_title("2 segtube Width Accuracy -2")
+ax[1,0].set_ylabel('Percentage ACC')
+ax[1,0].set_xlabel('# of Epoch')
+
+
+ax[0,1].plot(x,np.asarray(acc2))
+ax[0,1].set_title("2 segtube Width Accuracy -1")
+ax[0,1].set_ylabel('Percentage ACC')
+ax[0,1].set_xlabel('# of Epoch')
+
+
+ax[1,1].plot(x,np.asarray(acc1))
+ax[1,1].set_title("2 segtube Length Accuracy")
+ax[1,1].set_ylabel('Percentage Acc')
+ax[1,1].set_xlabel('# of Epoch')
+
+plt.show()
     
