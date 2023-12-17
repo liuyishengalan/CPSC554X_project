@@ -19,7 +19,7 @@ CPSC554X_project/
 │   │   └── geometry_data.txt
 │   ├── generate_dataset.py
 │   └── mlp.py
-├── 2segtube
+├── #segtube
 │   ├── dataset
 │   │   ├── acoustic_data.txt
 │   │   └── geometry_data.txt
